@@ -1,2 +1,2 @@
-# ForgeTemplate
- A template for forge mods (sort of not polished), mostly made for me myself to use.
+# Uhc Stats Mod
+ A mod for checking player stats in Hypixel UHC Champions

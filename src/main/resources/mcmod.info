@@ -1,13 +1,13 @@
 [
 {
-  "modid": "forgetemplate",
-  "name": "ForgeTemplate",
-  "description": "Example placeholder mod.",
+  "modid": "uhcstatsmod",
+  "name": "UhcStats",
+  "description": "Uhc stat checker mod",
   "version": "1.0",
   "mcversion": "1.8.9",
   "url": "",
   "updateUrl": "",
-  "authorList": ["Someone"],
+  "authorList": ["mexish"],
   "credits": "",
   "logoFile": "",
   "screenshots": [],

@@ -1,4 +1,3 @@
-
 // For those who want the bleeding edge
 buildscript {
     repositories {
@@ -8,30 +7,64 @@ buildscript {
         maven { url 'https://repo.spongepowered.org/maven' }
         // The url to get the forge dependencies from.
         maven { url 'https://files.minecraftforge.net/maven' }
+        maven { url 'https://repo.essential.gg/repository/maven-public' }
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
         classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
     }
 }
+plugins {
+    id "com.github.johnrengelman.shadow" version "4.0.0" apply true
+}
 
+
+// Gradle plugin for all Minecraft mod development needs.
 apply plugin: 'net.minecraftforge.gradle.forge'
+
 
 version = "1.0"
 group= "com.someone.forgetemplate" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "modid" // the archive(jar)'s name
+archivesBaseName = "uhcstats" // the archive(jar)'s name
 
-repositories {
-    // The mavenCentral() alias means that dependencies are fetched from the central Maven 2 repository (https://repo1.maven.org/maven2).
-    mavenCentral()
-    // The url to get the spongepowered dependencies from.
-    maven {
-        url 'https://repo.spongepowered.org/maven'
-    }
-    jcenter()
-    maven {
-        url 'https://jitpack.io/'
-    }
+// Need this here so eclipse task generates correctly.
+sourceCompatibility = targetCompatibility = '1.8'
+compileJava {
+    // This ensures that the generated class files will be compatible with JVMs specified by targetCompatibility.
+    sourceCompatibility = targetCompatibility = '1.8'
+    // Makes it so u don't need to convert unicode to basic latin for it to be able to build/run.
+    options.encoding 'UTF-8'
+}
+
+build {
+    dependsOn(reobfJar)
+}
+
+reobfJar {
+    dependsOn(shadowJar)
+}
+
+
+
+shadowJar {
+    exclude 'META-INF/DEPENDENCIES'
+    exclude 'META-INF/LICENSE'
+    exclude 'META-INF/LICENSE.txt'
+    exclude 'dummyThing'
+    exclude 'changelog.txt'
+    exclude 'LICENSE'
+    exclude 'LICENSE.txt'
+    exclude 'release-timestamp.txt'
+    exclude 'AUTHORS'
+    exclude 'README.md'
+    exclude 'latestchanges.html'
+    exclude 'mozilla/**'
+    exclude 'Class50/**' // lombok generated ???
+    exclude 'module-info.class'
+    exclude 'META-INF/NOTICE'
+    exclude 'META-INF/versions/**'
+    exclude 'META-INF/NOTICE.txt'
+    exclude 'META-INF/maven/**'
 }
 
 minecraft {
@@ -45,23 +78,105 @@ minecraft {
     makeObfSourceJar = false
 }
 
+repositories {
+    // The mavenCentral() alias means that dependencies are fetched from the central Maven 2 repository (https://repo1.maven.org/maven2).
+    mavenCentral()
+    // The url to get the spongepowered dependencies from.
+    maven {
+        url 'https://repo.spongepowered.org/maven'
+    }
+    jcenter()
+    maven {
+        url 'https://jitpack.io/'
+    }
+    maven { url 'https://repo.hypixel.net/repository/Hypixel/' }
+    maven { url 'https://repo.essential.gg/repository/maven-public' }
+}
 
-processResources
-{
-    // this will ensure that this task is redone when the versions change.
-    inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
+configurations {
+    // Adds a reference so that we extend/add on to it with depends so we can grab them and compile them into the jar.
+    embed
+    compile.extendsFrom embed
+}
 
-    // replace stuff in mcmod.info, nothing else
+dependencies {
+    embed('org.spongepowered:mixin:0.6.4-SNAPSHOT') {
+
+        // Excludes unneeded stuff.
+        exclude module: 'gson'
+        exclude module: 'guava'
+        exclude module: 'jarjar'
+        exclude module: 'commons-codec'
+        exclude module: 'commons-io'
+        exclude module: 'launchwrapper'
+        exclude module: 'asm-commons'
+        exclude module: 'slf4j-api'
+    }
+
+    // Hypixel API
+    implementation ('net.hypixel:hypixel-api-transport-apache:4.2.1') {
+        exclude group: 'com.google.code.gson', module: 'gson'
+    }
+    implementation ('org.apache.httpcomponents:httpclient:4.5.14') {
+        exclude group: 'com.google.code.gson', module: 'gson'
+    }
+    implementation ('com.konghq:unirest-java:3.11.10') {
+        exclude group: 'com.google.code.gson', module: 'gson'
+    }
+
+    // Lombok
+    implementation 'org.projectlombok:lombok:1.18.22'
+    annotationProcessor 'org.projectlombok:lombok:1.18.22'
+    // Grabs what's extended/added on from/to embed and compiles it into the jar when being built.
+    implementation 'org.jetbrains:annotations:22.0.0'
+}
+
+
+
+
+processResources {
+    // This will ensure that this task is redone when the versions change.
+    inputs.property 'version', project.version
+    // Replace stuff in mcmod.info, Nothing else.
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
-                
-        // replace version and mcversion
-        expand 'version':project.version, 'mcversion':project.minecraft.version
+        // Replace version.
+        expand 'version': project.version
     }
-        
-    // copy everything else, thats not the mcmod.info
+    // Copy everything else except the mcmod.info.
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
+    }
+    // Moves the access transformer into META-INF.
+    rename '(.+_at.cfg)', 'META-INF/$1'
+}
+
+processResources {
+    // This will ensure that this task is redone when the versions change.
+    inputs.property 'version', project.version
+    // Replace stuff in mcmod.info, Nothing else.
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+        // Replace version.
+        expand 'version': project.version
+    }
+    // Copy everything else except the mcmod.info.
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+    // Moves the access transformer into META-INF.
+    rename '(.+_at.cfg)', 'META-INF/$1'
+}
+
+jar {
+    from(configurations.embed.collect {
+        it.isDirectory() ? it : zipTree(it)
+    }) {
+        // Excludes/Removes useless bloat files from the compiled jar.
+        exclude 'dummyThing',
+                'LICENSE.txt',
+                'META-INF/MUMFREY.RSA',
+                'META-INF/maven/**',
+                'org/**/*.html'
     }
 }

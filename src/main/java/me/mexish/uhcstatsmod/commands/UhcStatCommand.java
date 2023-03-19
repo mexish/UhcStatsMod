@@ -109,7 +109,12 @@ public class UhcStatCommand extends CommandBase {
                                     "§2Score: §a" + score;
                     //ChatUtil.base("Team Kills: " + kills);
                     //ChatUtil.base("Solo Kills: " + killsSolo);
-                    IChatComponent finalStatMessage = new ChatComponentText(UhcStatsMod.PREFIX + "\n" + "§bPlayer stats for §3" + playerName + ":\n" + finalStats);
+                    IChatComponent finalStatMessage = null;
+                    try {
+                        finalStatMessage = new ChatComponentText(UhcStatsMod.PREFIX + "\n" + "§bPlayer stats for §3" + HypixelRequests.getHypixelAPI().getPlayerByUuid(playerUuid).get().getPlayer().getName() + ":\n" + finalStats);
+                    } catch (Exception e) {
+                        return;
+                    }
                     UhcStatsMod.mc.thePlayer.addChatMessage(finalStatMessage);
                 });
 

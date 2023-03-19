@@ -24,6 +24,7 @@ public class UhcStatsMod
 
     public static final String PREFIX = "§7[§6UHCSTATS§7]";
 
+    @Mod.Instance
     public static UhcStatsMod INSTANCE;
 
     @Getter File suggestedConfigurationFile;

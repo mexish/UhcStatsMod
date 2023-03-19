@@ -25,12 +25,17 @@ public class ChatListener {
 
         val text = event.message.getUnformattedText();
 
-        if (text.startsWith(ChatListener.NEW_KEY_PATTERN)) {
-            val key = text.substring(ChatListener.NEW_KEY_PATTERN.length());
-            UhcStatsMod.INSTANCE.getConfiguration().setApiKey(UUID.fromString(key));
-            UhcStatsMod.INSTANCE.getConfiguration().save();
-            ChatUtil.base("Automatically applied your API key to: " + key);
-            UhcStatsMod.INSTANCE.reloadConfiguration();
+        try {
+            if (text.startsWith(ChatListener.NEW_KEY_PATTERN)) {
+                val key = text.substring(ChatListener.NEW_KEY_PATTERN.length());
+                UhcStatsMod.INSTANCE.getConfiguration().setApiKey(UUID.fromString(key));
+                UhcStatsMod.INSTANCE.getConfiguration().save();
+                ChatUtil.base("Automatically applied your API key to: " + key);
+                UhcStatsMod.INSTANCE.reloadConfiguration();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
+
     }
 }

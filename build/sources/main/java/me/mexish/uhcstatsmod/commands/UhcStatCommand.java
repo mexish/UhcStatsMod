@@ -58,7 +58,7 @@ public class UhcStatCommand extends CommandBase {
             }
 
             try {
-                Executors.newFixedThreadPool(3).submit(() -> {
+                Executors.newFixedThreadPool(1).submit(() -> {
                     val playerReply = HypixelRequests.getHypixelAPI().getPlayerByUuid(playerUuid);
                     JsonObject stats = null;
                     try {

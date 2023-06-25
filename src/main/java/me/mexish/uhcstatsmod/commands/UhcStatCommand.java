@@ -17,9 +17,7 @@ import net.minecraftforge.client.ClientCommandHandler;
 
 import java.text.DecimalFormat;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 import static net.hypixel.api.data.type.GameType.UHC;
 
@@ -58,11 +56,21 @@ public class UhcStatCommand extends CommandBase {
             }
 
             try {
-                Executors.newFixedThreadPool(3).submit(() -> {
-                    val playerReply = HypixelRequests.getHypixelAPI().getPlayerByUuid(playerUuid);
+                Executors.newFixedThreadPool(1).submit(() -> {
+                    val playerReplyFuture = HypixelRequests.getHypixelAPI().getPlayerByUuid(playerUuid);
+                    PlayerReply playerReply = null;
+                    try {
+                        playerReply = playerReplyFuture.get(2, TimeUnit.SECONDS);
+                    } catch (TimeoutException e) {
+                        playerReplyFuture.cancel(true);
+                        ChatUtil.base("§cTimed out while waiting for the player stats for UHC!");
+                        return;
+                    } catch (InterruptedException | ExecutionException e) {
+                        throw new RuntimeException(e);
+                    }
                     JsonObject stats = null;
                     try {
-                        stats = playerReply.get().getPlayer().getProperty("stats").getAsJsonObject().get("UHC").getAsJsonObject();
+                        stats = playerReply.getPlayer().getProperty("stats").getAsJsonObject().get("UHC").getAsJsonObject();
                     } catch (Exception e) {
                         return;
                     }

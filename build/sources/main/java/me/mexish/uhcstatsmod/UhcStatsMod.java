@@ -2,9 +2,13 @@ package me.mexish.uhcstatsmod;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
+import me.mexish.uhcstatsmod.commands.ScanPlayerCommand;
+import me.mexish.uhcstatsmod.commands.TrackerAddCommand;
 import me.mexish.uhcstatsmod.commands.UhcStatCommand;
 import me.mexish.uhcstatsmod.config.UhcConfiguration;
 import me.mexish.uhcstatsmod.listener.ChatListener;
+import me.mexish.uhcstatsmod.listener.EventListener;
 import me.mexish.uhcstatsmod.requests.HypixelRequests;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
@@ -14,6 +18,7 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
+import java.awt.*;
 import java.io.File;
 
 @Mod(modid = UhcStatsMod.MODID, name="UhcStats", version = UhcStatsMod.VERSION)
@@ -31,18 +36,23 @@ public class UhcStatsMod
 
     @Getter public UhcConfiguration configuration;
 
+    @Setter @Getter static String lastGameType;
+
     public static Minecraft mc = Minecraft.getMinecraft();
     
     @EventHandler
     public void onPreInit(FMLPreInitializationEvent event) {
         this.suggestedConfigurationFile = event.getSuggestedConfigurationFile();
         new ChatListener();
+        new EventListener();
         registerCommands();
         reloadConfiguration();
     }
 
     public void registerCommands() {
         new UhcStatCommand();
+        new TrackerAddCommand();
+        new ScanPlayerCommand();
     }
 
     private void loadFromFile(final @NonNull File file) {
